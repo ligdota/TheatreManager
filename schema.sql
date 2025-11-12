@@ -33,7 +33,7 @@ PRAGMA foreign_keys = ON;
 
 
 CREATE TABLE transaction_type (
-    transaction_type_id INTEGER PRIMARY KEY,
+    transaction_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
     transaction_type_name TEXT  UNIQUE NOT NULL
 );
 
@@ -46,16 +46,16 @@ INSERT INTO transaction_type (transaction_type_name) VALUES
 
 
 CREATE Table play (
-play_id INTEGER PRIMARY KEY,
-play_title TEXT  NOT NULL,
+play_id INTEGER PRIMARY KEY AUTOINCREMENT,
+play_title TEXT  NOT NULL UNIQUE,
 play_author TEXT  NOT NULL,
 play_genre TEXT  NOT NULL,
 play_num_acts INTEGER NOT NULL
-);
+);  
 
 
 CREATE Table production (
-  production_id INTEGER PRIMARY KEY,
+  production_id INTEGER PRIMARY KEY AUTOINCREMENT,
   play_id INTEGER NOT NULL REFERENCES play(play_id) ON DELETE CASCADE,
   producer_id INTEGER NOT NULL REFERENCES member(member_id) ON DELETE CASCADE,
   production_ticket_price decimal NOT NULL,
@@ -65,7 +65,7 @@ CREATE Table production (
 
 
 CREATE Table member (
-member_id INTEGER PRIMARY KEY,
+member_id INTEGER PRIMARY KEY AUTOINCREMENT,
 member_fname TEXT NOT NULL,
 member_lname TEXT NOT NULL,
 member_email TEXT NOT NULL,
@@ -74,8 +74,8 @@ member_dues_paid bool
 );
 
 CREATE Table role (
-role_id INTEGER PRIMARY KEY,
-role_name TEXT NOT NULL
+role_id INTEGER PRIMARY KEY AUTOINCREMENT,
+role_name TEXT NOT NULL UNIQUE
 );
 
 --- note - memberRole is a weak entity dependent on role, production, and member
@@ -89,7 +89,7 @@ CREATE Table member_role (
 
 
 CREATE Table patron (
-  patron_id INTEGER PRIMARY KEY,
+  patron_id INTEGER PRIMARY KEY AUTOINCREMENT,
   patron_fname TEXT NOT NULL,
   patron_lname TEXT NOT NULL,
   patron_email TEXT NOT NULL,
@@ -99,13 +99,13 @@ CREATE Table patron (
 );
 
 CREATE Table seat (
-  seat_id INTEGER PRIMARY KEY,
+  seat_id INTEGER PRIMARY KEY AUTOINCREMENT,
   seat_row char NOT NULL,
   seat_num INTEGER NOT NULL
 );
 
 CREATE Table sponsor (
-  sponsor_id INTEGER PRIMARY KEY,
+  sponsor_id INTEGER PRIMARY KEY AUTOINCREMENT,
   sponsor_name TEXT NOT NULL,
   sponsor_phone TEXT NOT NULL,
   sponsor_email TEXT NOT NULL
@@ -113,16 +113,16 @@ CREATE Table sponsor (
 
 
 CREATE Table finances (
-  transaction_id INTEGEREGER PRIMARY KEY,
-  production_id INTEGEREGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE,
-  transaction_type_id INTEGEREGER NOT NULL REFERENCES transaction_type(transaction_type_id),
+  transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE,
+  transaction_type_id INTEGER NOT NULL REFERENCES transaction_type(transaction_type_id),
   transaction_amount DECIMAL NOT NULL,
   transaction_date DATE NOT NULL
 );
 
 
 CREATE Table ticket (
-  ticket_id INTEGER PRIMARY KEY,
+  ticket_id INTEGER PRIMARY KEY AUTOINCREMENT,
   production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE,
   patron_id INTEGER NOT NULL REFERENCES patron(patron_id),
   seat_id INTEGER NOT NULL REFERENCES seat(seat_id),

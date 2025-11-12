@@ -58,6 +58,13 @@
   "C_Cpp_Runner.msvcSecureNoWarnings": false,
   "files.associations": {
     "iostream": "cpp",
-    "ostream": "cpp"
-  }
+    "ostream": "cpp",
+    "*.sql": "sql"
+  },
+  "sqltools.connections": [
+    {
+      "driver": "SQLite",
+      "database": "${workspaceFolder:DBFinalPROJ}/theatre.db"
+    }
+  ]
 }
