@@ -52,4 +52,43 @@ FROM member;
 
 
 
+/*
+ * View #4: Sponsor Contributions
+ * Lists sponsors and their contributions for each production.
+ */
+CREATE VIEW view_sponsor_contributions AS
+SELECT
+    sd.sponsor_id,
+    s.sponsor_name,
+    s.sponsor_phone,
+    s.sponsor_email,
+    sd.production_id,
+    pl.play_title,
+    sd.donation_amount,
+    sd.sponsor_ad_creds,
+    sd.sponsor_prod_creds
+FROM sponsor_donations sd
+JOIN sponsor     s  ON sd.sponsor_id    = s.sponsor_id
+JOIN production  p  ON sd.production_id = p.production_id
+JOIN play        pl ON p.play_id        = pl.play_id;
 
+/*
+ * View #5: Production Finances Summary
+ * Summarizes financial transactions for each production by transaction type.
+ */
+CREATE VIEW view_production_finances AS
+SELECT
+    p.production_id,
+    pl.play_title,
+    f.transaction_date,
+    tt.transaction_type_name,
+    SUM(f.transaction_amount) AS total_amount
+FROM finances         f
+JOIN transaction_type tt ON f.transaction_type_id = tt.transaction_type_id
+JOIN production       p  ON f.production_id       = p.production_id
+JOIN play             pl ON p.play_id             = pl.play_id
+GROUP BY
+    p.production_id,
+    pl.play_title,
+    f.transaction_date,
+    tt.transaction_type_name;
