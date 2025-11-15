@@ -62,5 +62,3 @@ INSERT INTO play (play_title, play_author, play_genre, play_num_acts) VALUES ('D
 INSERT INTO play (play_title, play_author, play_genre, play_num_acts) VALUES ('The Ferryman', 'Jez Butterworth', 'Drama', 3);
 INSERT INTO play (play_title, play_author, play_genre, play_num_acts) VALUES ('Jerusalem', 'Jez Butterworth', 'Drama', 3);
 COMMIT;
--- Example query:
--- SELECT * FROM play LIMIT 10;

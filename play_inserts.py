@@ -26,6 +26,5 @@ with open(csv_path, newline='', encoding="utf-8") as csvfile:
             )
 
         out.write("COMMIT;\n")
-        out.write("-- Example query:\n-- SELECT * FROM play LIMIT 10;\n")
 
 print(f"SQL file '{output_sql}' created from '{csv_path}'.")
