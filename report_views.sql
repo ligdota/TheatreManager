@@ -107,3 +107,19 @@ JOIN transaction_type tt
     ON tt.transaction_type_id = f.transaction_type_id
 GROUP BY f.production_id, tt.transaction_type_name;
 
+
+/*
+ * View #6: Full Balance Sheet
+ * Combines ticket sales, sponsor credits, member dues, and expenses 
+ * into a comprehensive balance sheet for each production.
+ */
+CREATE VIEW view_full_balance_sheet AS
+SELECT 
+    f.production_id,
+    tt.transaction_type_name,
+    COALESCE(SUM(f.transaction_amount), 0) AS total_amount
+FROM finances f
+JOIN transaction_type tt
+    ON tt.transaction_type_id = f.transaction_type_id
+GROUP BY f.production_id, tt.transaction_type_name;
+
