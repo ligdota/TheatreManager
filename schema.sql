@@ -16,7 +16,7 @@ sponsor_donations.production_id -> production.production_id
 ticket.seat_id -> seat.seat_id
 
 
-On update clauses.
+On upTEXT clauses.
 When a play is deleted, all associated productions are deleted.
 When a member (producer) is deleted, all associated productions are deleted.
 When a role is deleted, all associated member_role entries are deleted.
@@ -34,7 +34,7 @@ PRAGMA foreign_keys = ON;
 
 CREATE TABLE transaction_type (
     transaction_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
-    transaction_type_name TEXT  UNIQUE NOT NULL
+    transaction_type_name TEXT UNIQUE NOT NULL
 );
 
 INSERT INTO transaction_type (transaction_type_name) VALUES
@@ -51,16 +51,16 @@ play_title TEXT  NOT NULL UNIQUE,
 play_author TEXT  NOT NULL,
 play_genre TEXT  NOT NULL,
 play_num_acts INTEGER NOT NULL
-);  
+) STRICT;  
 
 
 CREATE Table production (
   production_id INTEGER PRIMARY KEY AUTOINCREMENT,
   play_id INTEGER NOT NULL REFERENCES play(play_id) ON DELETE CASCADE,
   producer_id INTEGER NOT NULL REFERENCES member(member_id) ON DELETE CASCADE,
-  production_ticket_price decimal NOT NULL,
-  production_date date
-);
+  production_ticket_price REAL NOT NULL,
+  production_date TEXT
+) STRICT;
 
 
 
@@ -70,13 +70,13 @@ member_fname TEXT NOT NULL,
 member_lname TEXT NOT NULL,
 member_email TEXT NOT NULL,
 member_phone TEXT NOT NULL,
-member_dues_paid bool
-);
+member_dues_paid INTEGER
+) STRICT;
 
 CREATE Table role (
 role_id INTEGER PRIMARY KEY AUTOINCREMENT,
 role_name TEXT NOT NULL UNIQUE
-);
+) STRICT;
 
 --- note - memberRole is a weak entity dependent on role, production, and member
 CREATE Table member_role (
@@ -84,7 +84,7 @@ CREATE Table member_role (
   production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE,
   role_id INTEGER NOT NULL REFERENCES role(role_id) ON DELETE CASCADE,
   PRIMARY KEY (member_id, production_id, role_id)
-);
+) STRICT;
 
 
 
@@ -95,8 +95,8 @@ CREATE Table patron (
   patron_email TEXT NOT NULL,
   patron_phone TEXT NOT NULL,
   patron_address TEXT  NOT NULL,
-  patron_subscription BOOLEAN  
-);
+  patron_subscription INTEGER  
+) STRICT;
 
 CREATE Table seat (
   seat_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -109,16 +109,16 @@ CREATE Table sponsor (
   sponsor_name TEXT NOT NULL,
   sponsor_phone TEXT NOT NULL,
   sponsor_email TEXT NOT NULL
-);
+) STRICT;
 
 
 CREATE Table finances (
   transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE,
+  production_id INTEGER REFERENCES production(production_id) ON DELETE CASCADE,
   transaction_type_id INTEGER NOT NULL REFERENCES transaction_type(transaction_type_id),
-  transaction_amount DECIMAL NOT NULL,
-  transaction_date DATE NOT NULL
-);
+  transaction_amount REAL NOT NULL,
+  transaction_date TEXT NOT NULL
+) STRICT;
 
 
 CREATE Table ticket (
@@ -126,20 +126,20 @@ CREATE Table ticket (
   production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE,
   patron_id INTEGER NOT NULL REFERENCES patron(patron_id),
   seat_id INTEGER NOT NULL REFERENCES seat(seat_id),
-  ticket_cost decimal NOT NULL,
-  purchase_date date NOT NULL
-);
+  ticket_cost REAL NOT NULL,
+  purchase_date TEXT NOT NULL
+) STRICT;
 
 
 CREATE Table sponsor_donations (
   sponsor_id INTEGER NOT NULL REFERENCES sponsor(sponsor_id),
   production_id INTEGER NOT NULL REFERENCES production(production_id),
-  donation_amount decimal NOT NULL,
-  sponsor_ad_creds decimal,
-  sponsor_prod_creds decimal,
+  donation_amount REAL NOT NULL,
+  sponsor_ad_creds REAL,
+  sponsor_prod_creds REAL,
   PRIMARY KEY (sponsor_id, production_id)
   --- note - sponsorDonations is a weak entity dependent on sponsor and production
-);
+) STRICT;
 
 
 
