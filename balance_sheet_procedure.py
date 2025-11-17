@@ -21,8 +21,7 @@ def get_production_balance_sheet(production_id: int) -> dict:
     # Classify all categories
     categories = {
         "ticket_sales": 0,
-        "sponsor_prod_creds": 0,
-        "sponsor_ad_creds": 0,
+        "donation_amount": 0,
         "member_dues": 0,
         "expenses": 0
     }
@@ -31,12 +30,8 @@ def get_production_balance_sheet(production_id: int) -> dict:
     for type, amount in rows:
         categories[type] = amount
 
-    # Group and add all sources of income into total income.
-    total_income = (categories["ticket_sales"] +
-        categories["sponsor_prod_creds"] +
-        categories["sponsor_ad_creds"] +
-        categories["member_dues"]
-    )
+    # Group and add all sources of income into total income excluding advertisement and production credits.
+    total_income = (categories["ticket_sales"] + categories["donation_amount"] + categories["member_dues"])
 
     # Calculates the net balance.
     net_balance = total_income - categories["expenses"]

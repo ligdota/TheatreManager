@@ -98,12 +98,22 @@ GROUP BY
  * This view will be used to classify all transactions which will help us generate a comprehensive balance sheet for each production.
  */
 CREATE VIEW view_all_transaction_types AS
+-- 1. Finance transactions
 SELECT 
     f.production_id,
     tt.transaction_type_name,
-    COALESCE(SUM(f.transaction_amount), 0) AS total_amount
+    SUM(f.transaction_amount) AS total_amount
 FROM finances f
-JOIN transaction_type tt
+JOIN transaction_type tt 
     ON tt.transaction_type_id = f.transaction_type_id
-GROUP BY f.production_id, tt.transaction_type_name; 
+GROUP BY f.production_id, tt.transaction_type_name
+UNION ALL
+-- 2. Donation amount counted towards income
+SELECT
+    sd.production_id,
+    'donation_amount' AS transaction_type_name,
+    SUM(sd.donation_amount) AS total_amount
+FROM sponsor_donations sd
+GROUP BY sd.production_id, transaction_type_name;
+ 
 
