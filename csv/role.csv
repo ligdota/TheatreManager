@@ -1,0 +1,21 @@
+role_id,role_name
+1,Director
+2,Assistant Director
+3,Stage Manager
+4,Assistant Stage Manager
+5,Lead Actor
+6,Supporting Actor
+7,Ensemble
+8,Lighting Designer
+9,Sound Designer
+10,Costume Designer
+11,Set Designer
+12,Props Master
+13,Choreographer
+14,Music Director
+15,Producer
+16,Assistant Producer
+17,Stagehand
+18,Front of House
+19,Box Office
+20,Understudy

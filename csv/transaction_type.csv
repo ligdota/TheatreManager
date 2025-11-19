@@ -1,0 +1,6 @@
+transaction_type_id,transaction_type_name
+1,member_dues
+2,sponsor_ad_creds
+3,sponsor_prod_creds
+4,ticket_sales
+5,expenses
