@@ -114,6 +114,18 @@ SELECT
     'donation_amount' AS transaction_type_name,
     SUM(sd.donation_amount) AS total_amount
 FROM sponsor_donations sd
-GROUP BY sd.production_id, transaction_type_name;
+GROUP BY sd.production_id, transaction_type_name
+UNION ALL
+-- 3. Member dues per production: count members appearing in production via member_role
+-- table and sum their dues if paid.
+SELECT
+    mr.production_id,
+    'member_dues' AS transaction_type_name,
+    SUM(m.member_dues) AS total_amount
+FROM member_role mr
+JOIN member m 
+    ON m.member_id = mr.member_id
+WHERE m.member_dues_paid = 1
+GROUP BY mr.production_id, transaction_type_name; 
  
 

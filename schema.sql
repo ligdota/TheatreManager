@@ -48,7 +48,7 @@ PRAGMA foreign_keys = ON;
 -- lookup table for different types of financial transactions
 CREATE TABLE transaction_type (
     transaction_type_id INTEGER PRIMARY KEY AUTOINCREMENT, -- surrogate
-    transaction_type_name TEXT  UNIQUE NOT NULL -- readable name
+    transaction_type_name TEXT UNIQUE NOT NULL -- readable name
 );
 
 -- data for transaction types to be used in the schema
@@ -66,7 +66,7 @@ play_title TEXT  NOT NULL UNIQUE, -- title, must be unique
 play_author TEXT  NOT NULL, -- playwright
 play_genre TEXT  NOT NULL, -- comedy, tragedy, drama, etc..
 play_num_acts INTEGER NOT NULL -- number of acts in the script
-);  
+) STRICT;  
 
 
 -- specific production of a play on a given date, links a play to a producer and stores ticket price
@@ -74,9 +74,9 @@ CREATE Table production (
   production_id INTEGER PRIMARY KEY AUTOINCREMENT, -- unique production instance
   play_id INTEGER NOT NULL REFERENCES play(play_id) ON DELETE CASCADE, -- which play is being produced
   producer_id INTEGER NOT NULL REFERENCES member(member_id) ON DELETE CASCADE, -- the producer in charge
-  production_ticket_price decimal NOT NULL, -- base ticket price for this production
-  production_date date -- date of the play
-);
+  production_ticket_price REAL NOT NULL, -- base ticket price for this production
+  production_date TEXT -- date of the play
+) STRICT;
 
 
 -- members of the theatre company (actors, directors, crew, etc..)
@@ -86,14 +86,15 @@ member_fname TEXT NOT NULL, -- first name
 member_lname TEXT NOT NULL, -- last name
 member_email TEXT NOT NULL, -- contact email
 member_phone TEXT NOT NULL, -- contact phone number
-member_dues_paid bool -- flag indicating if dues are current
-);
+member_dues_paid INTEGER, -- flag indicating if dues are current
+member_dues REAL NOT NULL -- amount of dues paid
+) STRICT;
 
 -- role catalog
 CREATE Table role (
 role_id INTEGER PRIMARY KEY AUTOINCREMENT, -- unique role id
 role_name TEXT NOT NULL UNIQUE -- unique name for the role
-);
+) STRICT;
 
 --- note - memberRole is a weak entity dependent on role, production, and member
 -- connects a member to a role in a specific production (primary key is the combination of member and production id)
@@ -102,7 +103,7 @@ CREATE Table member_role (
   production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE, -- in what production
   role_id INTEGER NOT NULL REFERENCES role(role_id) ON DELETE CASCADE, -- with what role
   PRIMARY KEY (member_id, production_id, role_id) -- composite key to ensure uniqueness
-);
+) STRICT;
 
 
 -- customers who buy tickets or hold subscriptions
@@ -113,8 +114,8 @@ CREATE Table patron (
   patron_email TEXT NOT NULL, -- contact email
   patron_phone TEXT NOT NULL, -- contact phone number
   patron_address TEXT  NOT NULL, -- mailing address
-  patron_subscription BOOLEAN -- indicates if a patron has a sub
-);
+  patron_subscription INTEGER -- indicates if a patron has a sub
+) STRICT;
 
 -- seats in the venue, each set identified by row and seat number
 CREATE Table seat (
@@ -129,16 +130,16 @@ CREATE Table sponsor (
   sponsor_name TEXT NOT NULL, -- organization/person name
   sponsor_phone TEXT NOT NULL, -- contact phone number
   sponsor_email TEXT NOT NULL -- contact email
-);
+) STRICT;
 
 -- financial transactions specifically associated with productions (uses transaction id to categorize)
 CREATE Table finances (
   transaction_id INTEGER PRIMARY KEY AUTOINCREMENT, -- unique id
-  production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE, -- which productiton does this transaction relate to
+  production_id INTEGER REFERENCES production(production_id) ON DELETE CASCADE, -- which productiton does this transaction relate to
   transaction_type_id INTEGER NOT NULL REFERENCES transaction_type(transaction_type_id), -- category of transactiom
-  transaction_amount DECIMAL NOT NULL, -- positive/negative amount
-  transaction_date DATE NOT NULL -- when the transaction occured
-);
+  transaction_amount REAL NOT NULL, -- positive/negative amount
+  transaction_date TEXT NOT NULL -- when the transaction occured
+) STRICT;
 
 -- tickets sold to patrons for seats in specific productions
 CREATE Table ticket (
@@ -146,20 +147,20 @@ CREATE Table ticket (
   production_id INTEGER NOT NULL REFERENCES production(production_id) ON DELETE CASCADE, -- which production
   patron_id INTEGER NOT NULL REFERENCES patron(patron_id), -- which patron purchased it
   seat_id INTEGER NOT NULL REFERENCES seat(seat_id), -- which seat is reserved
-  ticket_cost decimal NOT NULL, -- price paid for ticket
-  purchase_date date NOT NULL -- date of ticket purchase
-);
+  ticket_cost REAL NOT NULL, -- price paid for ticket
+  purchase_date TEXT NOT NULL -- date of ticket purchase
+) STRICT;
 
 -- connects sponsors with productions using donation amounts and credits
 CREATE Table sponsor_donations (
   sponsor_id INTEGER NOT NULL REFERENCES sponsor(sponsor_id), -- sponsor making the donation
   production_id INTEGER NOT NULL REFERENCES production(production_id), -- production being sponsored
-  donation_amount decimal NOT NULL, -- total donation amount
-  sponsor_ad_creds decimal, -- production credits granted
-  sponsor_prod_creds decimal, --weak composite key
+  donation_amount REAL NOT NULL, -- total donation amount
+  sponsor_ad_creds REAL, -- production credits granted
+  sponsor_prod_creds REAL, --weak composite key
   PRIMARY KEY (sponsor_id, production_id)
   --- note - sponsorDonations is a weak entity dependent on sponsor and production
-);
+) STRICT;
 
 
 
