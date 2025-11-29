@@ -1,60 +1,306 @@
-#include <iostream>
-#include "sqlite3.h"
-#include <string>
-#include <vector>
-#include <cstdlib>
-#include <iomanip>
-using namespace std;
+#include "play.h"
+#include "production.h"
+#include "member.h"
+#include "purchaseTickets.h"
+#include "finances.h"
+#include "execute.h"
+#include <cctype>
+#include <ctime>
 
+void userMode(sqlite3 *db);
+void manageMode(sqlite3 *db);
+void createViews(sqlite3 *db);
+void viewTheatreReports(sqlite3 *db);
 
-void addProduction(sqlite3* db);
-void editProductions(sqlite3* db);
-void deleteProduction(sqlite3* db);
-void editPlays(sqlite3* db);
-void viewFinanceReporting(sqlite3* db);
-void editMembers(sqlite3* db);
-void printPlays(sqlite3* db);
-void addPlays(sqlite3* db);
-void updateMember(sqlite3* db);
-void deleteMember(sqlite3* db);
-void addMember(sqlite3* db);
-void listProductions(sqlite3* db);
+void ticketSaleReport(sqlite3 *db);
+void sponsorContributionReport(sqlite3 *db);
+void productionFinanceReport(sqlite3 *db);
+void productionCastReport(sqlite3 *db);
+void memberReport(sqlite3 *db);
+string getCurrentTime();
 
+string getCurrentTime()
+{
+    time_t currentTime = time(NULL);
 
+    struct tm *localTime = localtime(&currentTime);
 
+    int year = localTime->tm_year + 1900;
+    int month = localTime->tm_mon + 1;
+    int day = localTime->tm_mday;
 
+    string date = to_string(year) + "-" + to_string(month) + "-" + to_string(day);
+    return date;
+}
 
+int main()
+{
 
-
-
-int main() {
-
-
-    sqlite3* db;
+    sqlite3 *db;
     int dbStatus = sqlite3_open("theatre.db", &db);
 
-    if (dbStatus) {
+    if (dbStatus)
+    {
         cerr << "Error: Cannot open database" << sqlite3_errmsg(db) << endl;
         return 1;
-    }   else {
+    }
+    else
+    {
         cout << "Database connected" << endl;
     }
 
-    char c;
-    
-    while (c != 'Q' && c != 'q') {
-    cout << "Welcome to the Bella SW Community Theatre Management System" << endl;
-    cout << "press 1 to edit productions" << endl;
-    cout << "press 2 to edit plays" << endl; 
-    cout << "press 3 to view finance reporting" << endl;
-    cout << "press 4 to edit members" << endl;
-    cout << "press Q to quit" << endl;
-    cin >> c;
-    //system("CLS");
-    
-    
+    createViews(db);
 
-    switch(c) {
+    int mode_choice;
+    cout << "Welcome to the Bella SW Community Theatre Management System" << endl;
+    cout << "1. for user mode" << endl;
+    cout << "2. for management mode" << endl;
+    cin >> mode_choice;
+    if (mode_choice == 1)
+    {
+        userMode(db);
+    }
+    else if (mode_choice == 2)
+    {
+        manageMode(db);
+    }
+    else
+    {
+        cout << "Error: Invalid option entered. Shutting down." << endl;
+        return -1;
+    }
+
+    sqlite3_close(db);
+    return 0;
+}
+
+void createViews(sqlite3 *db)
+{
+
+    const char *viewProdList = R"(
+CREATE VIEW IF NOT EXISTS view_production_list AS
+SELECT
+    p.production_id,
+    pl.play_title,
+    pl.play_author,
+    m.member_fname,
+    m.member_lname,
+    p.production_ticket_price,
+    p.production_date
+FROM production p
+JOIN play   pl ON p.play_id     = pl.play_id
+JOIN member m  ON p.producer_id = m.member_id;
+)";
+    executeSQLStatement(db, viewProdList, {});
+
+    /*
+     * View #1: Ticket Sales
+     * Provides details about ticket sales, combining ticket details, buyer information, seat assignments, and the related play.
+     */
+    const char *sql = R"(
+CREATE VIEW IF NOT EXISTS view_ticket_sales AS
+SELECT t.ticket_id,
+       pl.play_title,
+       pa.patron_fname || ' ' || pa.patron_lname AS buyer_name,
+       pa.patron_email AS buyer_email,
+       s.seat_row || s.seat_num AS seat,
+       t.ticket_cost,
+       t.purchase_date
+FROM ticket t
+JOIN patron pa ON t.patron_id = pa.patron_id
+JOIN seat s ON t.seat_id = s.seat_id
+JOIN production p ON t.production_id = p.production_id
+JOIN play pl ON p.play_id = pl.play_id;
+)";
+
+    executeSQLStatement(db, sql, {});
+
+    /*
+     * View #2: Production Cast and Crew
+     * Combines information from members, roles, productions, and plays to show who is part of the cast/crew for each production.
+     * */
+    const char *sql2 = R"(
+CREATE VIEW IF NOT EXISTS view_production_cast_crew AS
+SELECT p.production_id,
+       pl.play_title,
+       m.member_id,
+       m.member_fname || ' ' || m.member_lname AS member_name,
+       r.role_name
+FROM member_role mr
+JOIN member m ON mr.member_id = m.member_id
+JOIN production p ON mr.production_id = p.production_id
+JOIN play pl ON p.play_id = pl.play_id
+JOIN role r ON mr.role_id = r.role_id;
+)";
+
+    executeSQLStatement(db, sql2, {});
+
+    // executeSQLStatement(db, "DROP VIEW IF EXISTS view_member_dues;", {});
+
+    // View for member details for unpaid members
+
+    const char *sql3 = R"(CREATE VIEW  IF NOT EXISTS view_member_dues AS
+SELECT member_id,
+       member_fname || ' ' || member_lname AS member_name,
+       member_email,
+       member_phone,
+       'Unpaid' AS dues_status
+    FROM member
+    WHERE member_dues_paid = 0;
+)";
+
+    executeSQLStatement(db, sql3, {});
+    // View for sponsor donation information for each production
+    const char *view4 = R"(CREATE VIEW IF NOT EXISTS view_sponsor_contributions AS
+SELECT
+    sd.sponsor_id,
+    s.sponsor_name,
+    s.sponsor_phone,
+    s.sponsor_email,
+    sd.production_id,
+    pl.play_title,
+    sd.donation_amount,
+    sd.sponsor_ad_creds,
+    sd.sponsor_prod_creds
+FROM sponsor_donations sd
+JOIN sponsor     s  ON sd.sponsor_id    = s.sponsor_id
+JOIN production  p  ON sd.production_id = p.production_id
+JOIN play        pl ON p.play_id        = pl.play_id;
+)";
+    executeSQLStatement(db, view4, {});
+
+    // View for production finances for each production
+    const char *view5 = R"(CREATE VIEW IF NOT EXISTS view_production_finances AS
+SELECT
+    p.production_id,
+    pl.play_title,
+    f.transaction_date,
+    tt.transaction_type_name,
+    SUM(f.transaction_amount) AS total_amount
+FROM finances         f
+JOIN transaction_type tt ON f.transaction_type_id = tt.transaction_type_id
+JOIN production       p  ON f.production_id       = p.production_id
+JOIN play             pl ON p.play_id             = pl.play_id
+GROUP BY
+    p.production_id,
+    pl.play_title,
+    f.transaction_date,
+    tt.transaction_type_name;
+)";
+    executeSQLStatement(db, view5, {});
+
+    string date = getCurrentTime();
+    const char *member_dues_financial_trigger = R"(CREATE TRIGGER IF NOT EXISTS dues_trigger
+AFTER INSERT ON member
+WHEN NEW.member_dues_paid = 1
+BEGIN
+    INSERT INTO finances(transaction_type_id, transaction_amount, transaction_date)
+    VALUES (1, 100, datetime('now'));
+END;)";
+    executeSQLStatement(db, member_dues_financial_trigger, {});
+}
+
+void viewTheatreReports(sqlite3 *db)
+{
+    int user_choice;
+    cout << "1. Unpaid Members Report" << endl;
+    cout << "2. Production Cast Report" << endl;
+    cout << "3. Production Finance Report" << endl;
+    cout << "4. Sponsor Contributions Report" << endl;
+    cout << "5. Ticket Sale Reports" << endl;
+    cin >> user_choice;
+
+    switch (user_choice)
+    {
+
+    case 1:
+    {
+        memberReport(db);
+        break;
+    }
+    case 2:
+    {
+        productionCastReport(db);
+        break;
+    }
+    case 3:
+    {
+        productionFinanceReport(db);
+        break;
+    }
+    case 4:
+    {
+        sponsorContributionReport(db);
+        break;
+    }
+    case 5:
+    {
+        ticketSaleReport(db);
+    }
+    }
+    return;
+}
+
+void manageSubscription(sqlite3 *db)
+{
+    int user_id;
+    cout << "Enter your member id " << endl;
+    cin >> user_id;
+}
+
+void userMode(sqlite3 *db)
+{
+    int choice;
+    cout << "1. View upcoming productions" << endl;
+    cout << "2. Buy tickets" << endl;
+    cout << "3. Manage seat subscription" << endl;
+    cout << "4. To Exit" << endl;
+    cin >> choice;
+
+    if (choice == 1)
+    {
+        listProductions(db);
+        userMode(db);
+    }
+    else if (choice == 2)
+    {
+        purchaseTickets(db);
+        userMode(db);
+    }
+    else if (choice == 3)
+    {
+        manageSubscription(db);
+        return;
+    }
+    else if (choice == 4)
+    {
+        return;
+    }
+    else
+    {
+        cout << "Invalid option entered try again " << endl;
+        userMode(db);
+    }
+}
+
+void manageMode(sqlite3 *db)
+{
+
+    char c;
+
+    while (c != 'Q' && c != 'q')
+    {
+
+        cout << "1. To Edit Productions" << endl;
+        cout << "2. To Edit Plays" << endl;
+        cout << "3. To Edit Members" << endl;
+        cout << "4. To View Finance Reporting" << endl;
+        cout << "5. To View Theatre Reports" << endl;
+        cout << "q. To Quit" << endl;
+        cin >> c;
+
+        switch (c)
+        {
         case '1':
             cout << "Editing productions..." << endl;
             editProductions(db);
@@ -66,593 +312,270 @@ int main() {
             // Add play editing logic here
             break;
         case '3':
-            cout << "Viewing finance reporting..." << endl;
-            viewFinanceReporting(db);
-            // Add finance reporting logic here
-            break;
-        case '4':
             cout << "Editing members..." << endl;
             editMembers(db);
             // Add member editing logic here
             break;
+        case '4':
+            cout << "Viewing finance reporting..." << endl;
+            viewFinanceReporting(db);
+            // Add finance reporting logic here
+            break;
+
+        case '5':
+            cout << "Viewing Theatre Reports..." << endl;
+            viewTheatreReports(db);
+            break;
         case 'Q':
         case 'q':
             cout << "Quitting the program." << endl;
-            return 0;
+            return;
         default:
             cout << "Invalid option, please try again." << endl;
-    }
-}
-sqlite3_close(db);
-return 0;
-}
-
-
-void addProduction(sqlite3* db) {
-    string play, production_date, producer_fname, producer_lname;
-    
-    double base_ticket_price;
-    cout << "Enter the name of the play for this production " << endl;
-    cin.ignore();
-    getline(cin, play);
-    cout << "Enter the first name of the producer " << endl;
-    getline(cin, producer_fname);
-    cout << "Enter the last name of the producer " << endl;
-    getline(cin, producer_lname);
-    cout << "Enter the base ticket price " << endl;
-    cin >> base_ticket_price;
-    cout << "Enter the date of the production " << endl;
-    cin.ignore();
-    getline(cin, production_date);
-
-    int play_id = -1;
-    int producer_id = -1;
-
-    
-
-    const char* sql_query_plays = "SELECT play_id FROM play WHERE play_title = ?;";
-    sqlite3_stmt* stmt;
-   
-    if (sqlite3_prepare_v2(db, sql_query_plays, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Error: Failed to prepare statement" << sqlite3_errmsg(db) << endl;
-        return;
-    }
-
-
-    sqlite3_bind_text(stmt, 1, play.c_str(), -1, SQLITE_STATIC);
-    if (sqlite3_step(stmt) == SQLITE_ROW) {
-        play_id = sqlite3_column_int(stmt, 0);
-    } else {
-        cerr << "Error: Play doesnt exist in the database" << endl;
-        sqlite3_finalize(stmt);
-        return;
-    }
-    sqlite3_finalize(stmt);
-
- 
-
-
-
-const char* sql_query_names = "SELECT COUNT(*) FROM member where member_fname = ? AND member_lname = ?;";
-
-
-
-if (sqlite3_prepare_v2(db, sql_query_names, -1, &stmt, nullptr) != SQLITE_OK) {
-    cerr << "Error: Failed to prepare statement " << sqlite3_errmsg(db) << endl;
-    return;
-}
-
-sqlite3_bind_text(stmt, 1, producer_fname.c_str(), -1, SQLITE_STATIC);
-sqlite3_bind_text(stmt, 2, producer_lname.c_str(), -1, SQLITE_STATIC);
-
-
-if (sqlite3_step(stmt) == SQLITE_ROW) {
-    producer_id = sqlite3_column_int(stmt, 0);
-} else {
-    cerr << "Error producer is not a member in the database" << endl;
-    sqlite3_finalize(stmt);
-    return;
-}
-
-
-
-
-const char* sql_insert_prod = "INSERT INTO production (play_id, producer_id, production_ticket_price, production_date) VALUES (?, ?, ?, ?);";
-
-if (sqlite3_prepare_v2(db, sql_insert_prod, -1, &stmt, nullptr) != SQLITE_OK){
-    cerr << "Error preparing statement " << sqlite3_errmsg(db) << endl;
-    return;
-}
-
-sqlite3_bind_int(stmt, 1, play_id);
-sqlite3_bind_int(stmt, 2, producer_id);
-sqlite3_bind_int(stmt, 3, base_ticket_price);
-sqlite3_bind_text(stmt, 4, production_date.c_str(), -1, SQLITE_STATIC);
-
-if (sqlite3_step(stmt) == SQLITE_DONE) {
-    cout << "Production added successfully" << endl;
-} else {
-    cerr << "Error inserting production" << sqlite3_errmsg(db) << endl;
-}
-sqlite3_finalize(stmt);
-
-
-return;
-}
-
-
-
-
-
-void editProductions(sqlite3* db) {
-    // connect to the database, fetch production data, and allow editing
-    // Implementation for editing productions
-    cout << "press 1 to add a production" << endl;
-    cout << "press 2 to delete a production" << endl;
-    cout << "press 3 to update a production" << endl;
-    cout << "press 4 to return to the previous menu" << endl;
-    char choice;
-    cin >> choice;
-    switch(choice) {
-        case '1':
-            cout << "Adding a production..." << endl;
-            addProduction(db);
-            // Add logic to add a production
-            break;
-        case '2':
-            cout << "Deleting a production..." << endl;
-            deleteProduction(db);
-            // Add logic to delete a production
-            break;
-        case '3':
-            cout << "Updating a production..." << endl;
-            // Add logic to update a production
-            break;
-        case '4':
-            cout << "Returning to previous menu..." << endl;
-            break;
-    }
-    //system("CLS");
-
-}
-void editPlays(sqlite3* db) {
-    // Implementation for editing plays
-    cout << "press 1 to add a play" << endl;
-    cout << "press 2 to delete a play" << endl;
-    cout << "press 3 to update a play" << endl;
-    cout << "press 4 to return to the previous menu" << endl;
-    char choice;
-    cin >> choice;
-    switch(choice) {
-        case '1':
-            cout << "Adding a play..." << endl;
-            addPlays(db);
-            // Add logic to add a play
-            break;
-        case '2':
-            cout << "Deleting a play..." << endl;
-            // Add logic to delete a play
-            break;
-        case '3':
-            cout << "Updating a play..." << endl;
-            // Add logic to update a play
-            break;
-        case '4':
-            cout << "Returning to previous menu..." << endl;
-            break;
-    }
-
-    //system("CLS");
-}
-void viewFinanceReporting(sqlite3* db) {
-    // Implementation for viewing finance reporting
-
-    //system("CLS");
-}
-
-
-/*
-EditMembers()
-Purpose:
-Input:
-Output:
-
-*/
-
-
-
-void editMembers(sqlite3* db) {
-    // Implementation for editing members
-    char userinput;
-    cout << "Press 1 to add a new member" << endl;
-    cout << "Press 2 to delete a member" << endl;
-    cout << "Press 3 to update a members information" << endl;
-    cout << "Press 4 to return to the previous menu" << endl;
-    cin >> userinput;
-
-
-    switch (userinput) {
-        case '1':
-            cout << "adding member..." << endl;
-            addMember(db);
-            break;
-        case '2':
-            cout << "deleting a member.." << endl;
-            deleteMember(db);
-            break;
-        case '3':
-            cout << "update member.." << endl;
-            updateMember(db);
-            break;
-        case '4':
-            cout << "returning..." << endl;
-            system("CLS");
-            break;
-
+            manageMode(db);
+        }
     }
     return;
-
-    //system("CLS");
 }
 
+// 1) Ticket Sales Report – uses view_ticket_sales
+void ticketSaleReport(sqlite3 *db)
+{
+    cout << "\n=== Ticket Sales Report ===\n";
 
-void updateMember(sqlite3* db) {
-    int choice;
-    cout << "Update member by:\n"
-         << "1. Member ID\n"
-         << "2. First and last name\n> ";
-    cin >> choice;
+    const char *ticket_sale_info =
+        "SELECT play_title, buyer_name, buyer_email, seat, "
+        "       ticket_cost, purchase_date "
+        "FROM view_ticket_sales "
+        "ORDER BY play_title, purchase_date;";
 
-    int id;
-    string fname, lname;
-    bool searchById = false;
-
-    if (choice == 1) {
-        cout << "Enter member ID: ";
-        cin >> id;
-        searchById = true;
-    } else if (choice == 2) {
-        cout << "Enter member first name: ";
-        cin >> fname;
-        cout << "Enter member last name: ";
-        cin >> lname;
-    } else {
-        cout << "Invalid option.\n";
+    auto rows = executeSQLQuery(db, ticket_sale_info, {});
+    if (rows.empty())
+    {
+        cout << "No ticket sales found.\n";
         return;
     }
 
-    cout << "\nWhat would you like to update?\n"
-         << "1. Name\n"
-         << "2. Email\n"
-         << "3. Phone Number\n"
-         << "4. Paid Dues\n"
-         << "5. All fields\n> ";
-
-    int updateChoice;
-    cin >> updateChoice;
-
-    string sql = "UPDATE member SET ";
-    string newFname, newLname, newEmail, newPhone;
-    int paidDues;
-
-    switch (updateChoice) {
-        case 1:
-            cout << "Enter new first name: ";
-            cin >> newFname;
-            cout << "Enter new last name: ";
-            cin >> newLname;
-            sql += "member_fname = ?, member_lname = ?";
-            break;
-        case 2:
-            cout << "Enter new email: ";
-            cin >> newEmail;
-            sql += "member_email = ?";
-            break;
-        case 3:
-            cout << "Enter new phone number: ";
-            cin >> newPhone;
-            sql += "member_phone = ?";
-            break;
-        case 4:
-            cout << "Has the member paid dues? (1 for yes, 0 for no): ";
-            cin >> paidDues;
-            sql += "paid_dues = ?";
-            break;
-        case 5:
-            cout << "Enter new first name: ";
-            cin >> newFname;
-            cout << "Enter new last name: ";
-            cin >> newLname;
-            cout << "Enter new email: ";
-            cin >> newEmail;
-            cout << "Enter new phone: ";
-            cin >> newPhone;
-            cout << "Has the member paid dues? (1 for yes, 0 for no): ";
-            cin >> paidDues;
-            sql += "member_fname = ?, member_lname = ?, member_email = ?, member_phone = ?, paid_dues = ?";
-            break;
-        default:
-            cout << "Invalid choice.\n";
-            return;
+    for (const auto &row : rows)
+    {
+        cout << "Play Title   : " << row[0] << '\n';
+        cout << "Buyer Name   : " << row[1] << '\n';
+        cout << "Buyer Email  : " << row[2] << '\n';
+        cout << "Seat         : " << row[3] << '\n';
+        cout << "Ticket Cost  : " << row[4] << '\n';
+        cout << "Purchase Date: " << row[5] << "\n";
+        cout << "-----------------------------\n";
     }
-
-    sql += searchById ? " WHERE member_id = ?;" : " WHERE member_fname = ? AND member_lname = ?;";
-
-    sqlite3_stmt* stmt;
-    if (sqlite3_prepare_v2(db, sql.c_str(), -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Error preparing SQL: " << sqlite3_errmsg(db) << endl;
-        return;
-    }
-
-    int bindIndex = 1;
-
-    switch (updateChoice) {
-        case 1:
-            sqlite3_bind_text(stmt, bindIndex++, newFname.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, bindIndex++, newLname.c_str(), -1, SQLITE_STATIC);
-            break;
-        case 2:
-            sqlite3_bind_text(stmt, bindIndex++, newEmail.c_str(), -1, SQLITE_STATIC);
-            break;
-        case 3:
-            sqlite3_bind_text(stmt, bindIndex++, newPhone.c_str(), -1, SQLITE_STATIC);
-            break;
-        case 4:
-            sqlite3_bind_int(stmt, bindIndex++, paidDues);
-            break;
-        case 5:
-            sqlite3_bind_text(stmt, bindIndex++, newFname.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, bindIndex++, newLname.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, bindIndex++, newEmail.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_text(stmt, bindIndex++, newPhone.c_str(), -1, SQLITE_STATIC);
-            sqlite3_bind_int(stmt, bindIndex++, paidDues);
-            break;
-    }
-
-   
-    if (searchById) {
-        sqlite3_bind_int(stmt, bindIndex++, id);
-    } else {
-        sqlite3_bind_text(stmt, bindIndex++, fname.c_str(), -1, SQLITE_STATIC);
-        sqlite3_bind_text(stmt, bindIndex++, lname.c_str(), -1, SQLITE_STATIC);
-    }
-
-    if (sqlite3_step(stmt) == SQLITE_DONE) {
-        cout << "member updated successfully.\n";
-    } else {
-        cerr  << sqlite3_errmsg(db) << endl;
-    }
-
-    sqlite3_finalize(stmt);
 }
 
+// 2) Sponsor Contributions Report – uses view_sponsor_contributions
+void sponsorContributionReport(sqlite3 *db)
+{
+    cout << "\n=== Sponsor Contributions Report ===\n";
 
+    const char *sponsor_info =
+        "SELECT sponsor_name, sponsor_phone, sponsor_email, "
+        "       production_id, play_title, donation_amount, "
+        "       sponsor_ad_creds, sponsor_prod_creds "
+        "FROM view_sponsor_contributions "
+        "ORDER BY production_id, sponsor_name;";
 
-
-void addMember(sqlite3* db) {
-     const char* sql = "INSERT INTO member (member_fname, member_lname, member_email, member_phone, member_dues_paid) VALUES (?, ?, ?, ?, ?);";
-     sqlite3_stmt* stmt;
-
-     if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Error: Failed to prepare statement" << sqlite3_errmsg(db) << endl;
+    auto rows = executeSQLQuery(db, sponsor_info, {});
+    if (rows.empty())
+    {
+        cout << "No sponsor contributions found.\n";
         return;
-     }
-
-     string fname, lname, email, phone;
-     char input_dues;
-     bool member_paid_dues;
-     cout << "Enter members first name" << endl;
-     cin >> ws;
-     getline(cin, fname);
-     cout << "Enter members last name" << endl;
-     getline(cin, lname);
-     cout << "Enter members email" << endl;
-     getline(cin, email);
-     cout << "Enter members phone number" << endl;
-     getline(cin, phone);
-     while (true) {
-     cout << "Enter a 1 if member has paid dues, or 0 if not ";
-     cin >> ws;
-     input_dues = getchar();
-     if (input_dues == '1') {
-        member_paid_dues = 1;
-        break;
-     } else if (input_dues == '0') {
-        member_paid_dues = false;
-        break;
-     } else {
-        cout << "Invalid input. Please enter a 1 or a 0" << endl;
-     }
-     }
-
-
-    sqlite3_bind_text(stmt, 1, fname.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, lname.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, email.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 4, phone.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 5, member_paid_dues ? 1 : 0);
-
-     if (sqlite3_step(stmt) != SQLITE_DONE) {
-        cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << endl;
-    } else {
-        cout << "Member added successfully." << endl;
     }
-    sqlite3_finalize(stmt);
 
+    int currentProd = -1;
+    for (const auto &row : rows)
+    {
+        int production_id = stoi(row[3]);
+        const string &play_title = row[4];
+        const string &sponsor_name = row[0];
+        const string &sponsor_phone = row[1];
+        const string &sponsor_email = row[2];
+        const string &donation = row[5];
+        const string &ad_creds = row[6];
+        const string &prod_creds = row[7];
 
+        if (production_id != currentProd)
+        {
+            currentProd = production_id;
+            cout << "\n--- Production " << production_id
+                 << " ---" << play_title << " ---\n";
+        }
 
+        cout << "Sponsor Name : " << sponsor_name << '\n';
+        cout << "Phone        : " << sponsor_phone << '\n';
+        cout << "Email        : " << sponsor_email << '\n';
+        cout << "Donation     : " << donation << '\n';
+        cout << "Ad Credits   : " << ad_creds << '\n';
+        cout << "Program Creds: " << prod_creds << "\n";
+        cout << "-----------------------------\n";
+    }
 }
 
+// 3) Production Finance Report – uses view_production_finances
+void productionFinanceReport(sqlite3 *db)
+{
+    cout << "\n=== Production Finance Report ===\n";
 
+    const char *fin_info =
+        "SELECT production_id, play_title, transaction_date, "
+        "       transaction_type_name, total_amount "
+        "FROM view_production_finances "
+        "ORDER BY production_id, transaction_date, transaction_type_name;";
 
-void addPlays(sqlite3* db) {
-    const char* sql = "INSERT INTO play (play_title, play_author, play_genre, play_num_acts) VALUES (?, ?, ?, ?);";
-    sqlite3_stmt* stmt;
-    
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+    auto rows = executeSQLQuery(db, fin_info, {});
+    if (rows.empty())
+    {
+        cout << "No finance records found.\n";
         return;
     }
 
-    string title, author, genre;
-    int num_acts;
+    int currentProd = -1;
+    string currentTitle;
 
-    cout << "Enter play title: ";
-    cin >> ws; // to consume any leading whitespace
-    getline(cin, title);
-    cout << "Enter play author: ";
-    getline(cin, author);
-    cout << "Enter play genre: ";
-    getline(cin, genre);
-    cout << "Enter number of acts: ";
-    cin >> num_acts;
+    for (const auto &row : rows)
+    {
+        int production_id = stoi(row[0]);
+        const string &play_title = row[1];
+        const string &date = row[2];
+        const string &type_name = row[3];
+        const string &amount = row[4];
 
-    sqlite3_bind_text(stmt, 1, title.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, author.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 3, genre.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_int(stmt, 4, num_acts);
+        if (production_id != currentProd)
+        {
+            currentProd = production_id;
+            currentTitle = play_title;
+            cout << "\n--- Production " << production_id
+                 << " ---" << currentTitle << " ---\n";
+        }
 
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << endl;
-    } else {
-        cout << "Play added successfully." << endl;
+        cout << date << " | " << type_name
+             << " | Amount: " << amount << '\n';
     }
-
-    sqlite3_finalize(stmt);
 }
 
-void printPlays(sqlite3* db) {
-    const char* sql = "SELECT id, title, author, genre num_acts FROM plays;";
-    sqlite3_stmt* stmt;
+// 4) Production Cast & Crew Report – uses view_production_cast_crew
+void productionCastReport(sqlite3 *db)
+{
+    cout << "\n=== Production Cast & Crew Report ===\n";
 
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Failed to prepare statement: " << sqlite3_errmsg(db) << endl;
+    const char *production_cast =
+        "SELECT production_id, play_title, member_id, "
+        "       member_name, role_name "
+        "FROM view_production_cast_crew "
+        "ORDER BY production_id, role_name, member_name;";
+
+    auto rows = executeSQLQuery(db, production_cast, {});
+    if (rows.empty())
+    {
+        cout << "No cast/crew assignments found.\n";
         return;
     }
 
-    cout << "Plays List:" << endl;
-    cout << "ID | Title | Author | Duration" << endl;
-    cout << "----------------------------------" << endl;
+    int currentProd = -1;
+    string currentTitle;
 
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        int id = sqlite3_column_int(stmt, 0);
-        const unsigned char* title = sqlite3_column_text(stmt, 1);
-        const unsigned char* author = sqlite3_column_text(stmt, 2);
-        const unsigned char* genre = sqlite3_column_text(stmt, 3);
-        int num_acts = sqlite3_column_int(stmt, 4);
+    for (const auto &row : rows)
+    {
+        int production_id = stoi(row[0]);
+        const string &play_title = row[1];
+        const string &member_id = row[2];
+        const string &member = row[3];
+        const string &role = row[4];
 
-        cout << id << " | " << title << " | " << author << " | " << genre <<  " | " << num_acts << " |" << endl;
+        if (production_id != currentProd)
+        {
+            currentProd = production_id;
+            currentTitle = play_title;
+            cout << "\n--- Production " << production_id
+                 << " ---" << currentTitle << " ---\n";
+        }
+
+        cout << "Member ID: " << member_id
+             << " | " << member
+             << " | Role: " << role << '\n';
     }
-
-    sqlite3_finalize(stmt);
 }
 
+// 5) Unpaid Member Dues Report – uses view_member_dues
+void memberReport(sqlite3 *db)
+{
+    cout << "\n=== Unpaid Member Dues Report ===\n";
 
-void deleteProduction(sqlite3* db) {
-    char input;
-    int prod_id;
-    cout << "press 1 to view a list of productions" << endl;
-    cout << "press 2 to delete a production by id " << endl;
-    cin >> input;
+    const char *member_dues_info =
+        "SELECT member_name, member_email, member_phone, dues_status "
+        "FROM view_member_dues "
+        "ORDER BY dues_status, member_name;";
 
-    if (input == '1') {
-        listProductions(db);
-    }
-    cout << "Enter the id of the production to delete" << endl;
-    cin >> prod_id;
-
-    const char* sql = "DELETE FROM production WHERE production_id = ?;";
-    sqlite3_stmt* stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Error: Failed to prepare statement" << sqlite3_errmsg(db) << endl;
+    auto rows = executeSQLQuery(db, member_dues_info, {});
+    if (rows.empty())
+    {
+        cout << "All member dues are paid.\n";
         return;
     }
 
-    sqlite3_bind_int(stmt, 1, prod_id);
-
-    if (sqlite3_step(stmt) != SQLITE_DONE) {
-        cerr << "Error: Failed to execute production deletion" << sqlite3_errmsg(db) << endl;
-    } else {
-        cout << "Production deleted successfully" << endl;
+    for (const auto &row : rows)
+    {
+        cout << "Member Name : " << row[0] << '\n';
+        cout << "Email       : " << row[1] << '\n';
+        cout << "Phone       : " << row[2] << '\n';
+        cout << "Dues Status : " << row[3] << "\n";
+        cout << "-----------------------------\n";
     }
-    sqlite3_finalize(stmt);
-    return;
-
 }
 
+vector<string> suggestBlockSeats(bool availableMap[26][51], int numTickets)
+{
+    vector<string> result;
 
+    // Scan rows from front (A) to back (Z)
+    for (int rowIdx = 0; rowIdx < 26; ++rowIdx)
+    {
+        int consecutive = 0;
+        int startSeat = 1;
 
+        for (int seat = 1; seat <= 50; ++seat)
+        {
+            if (availableMap[rowIdx][seat])
+            {
+                if (consecutive == 0)
+                    startSeat = seat;
+                consecutive++;
 
-void deleteMember(sqlite3* db) {
-    string fname, lname;
-    cout << "Enter the first name of the member to delete" << endl;
-    cin >> fname;
-    cout << "Enter the last name of the member to delete" << endl;
-    cin >> lname; 
-
-    const char* sql = "DELETE FROM member WHERE member_fname = ? AND member_lname = ?;";
-    sqlite3_stmt* stmt;
-
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Error: Failed to prepare statement" << sqlite3_errmsg(db) << endl;
-        return;
-     }
-
-    sqlite3_bind_text(stmt, 1, fname.c_str(), -1, SQLITE_STATIC);
-    sqlite3_bind_text(stmt, 2, lname.c_str(), -1, SQLITE_STATIC);
-
-      if (sqlite3_step(stmt) != SQLITE_DONE) {
-        cerr << "Failed to execute statement: " << sqlite3_errmsg(db) << endl;
-    } else {
-        cout << "Member deleted successfully." << endl;
-    }
-    sqlite3_finalize(stmt);
-}
-
-
-
-void listProductions(sqlite3* db) {
-    const char* sql =
-        "SELECT production.production_id, play.play_title, play.play_author, "
-        "member.member_fname, member.member_lname, "
-        "production.production_ticket_price, production.production_date "
-        "FROM production "
-        "JOIN play ON production.play_id = play.play_id "
-        "JOIN member ON production.producer_id = member.member_id;";
-
-    sqlite3_stmt* stmt;
-
-    if (sqlite3_prepare_v2(db, sql, -1, &stmt, nullptr) != SQLITE_OK) {
-        cerr << "Error preparing statement: " << sqlite3_errmsg(db) << endl;
-        return;
+                if (consecutive == numTickets)
+                {
+                    // Found a block
+                    char rowChar = 'A' + rowIdx;
+                    for (int s = startSeat; s < startSeat + numTickets; ++s)
+                    {
+                        result.push_back(string(1, rowChar) + to_string(s));
+                    }
+                    return result;
+                }
+            }
+            else
+            {
+                consecutive = 0;
+            }
+        }
     }
 
-    cout << left << setw(5) << "ID"
-         << setw(25) << "Play Title"
-         << setw(20) << "Author"
-         << setw(20) << "Producer"
-         << setw(10) << "Price"
-         << setw(15) << "Date" << endl;
-    cout << string(95, '-') << endl;
-
-    while (sqlite3_step(stmt) == SQLITE_ROW) {
-        int id = sqlite3_column_int(stmt, 0);
-        string title = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 1));
-        string author = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 2));
-        string fname = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 3));
-        string lname = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 4));
-        double price = sqlite3_column_double(stmt, 5);
-        string date = reinterpret_cast<const char*>(sqlite3_column_text(stmt, 6));
-
-        cout << left << setw(5) << id
-             << setw(25) << title
-             << setw(20) << author
-             << setw(20) << (fname + " " + lname)
-             << setw(10) << fixed << setprecision(2) << price
-             << setw(15) << date << endl;
+    // If no contiguous block exists, just take any numTickets seats
+    for (int rowIdx = 0; rowIdx < 26 && (int)result.size() < numTickets; ++rowIdx)
+    {
+        for (int seat = 1; seat <= 50 && (int)result.size() < numTickets; ++seat)
+        {
+            if (availableMap[rowIdx][seat])
+            {
+                char rowChar = 'A' + rowIdx;
+                result.push_back(string(1, rowChar) + to_string(seat));
+            }
+        }
     }
 
-    sqlite3_finalize(stmt);
+    return result; // Will be non-empty as long as enough seats exist
 }

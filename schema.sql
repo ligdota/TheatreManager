@@ -31,7 +31,7 @@ Foreign key relationships:
 - sponsor_donations.production_id -> production.production_id
 
 
-On update clauses.
+On upTEXT clauses.
 When a play is deleted, all associated productions are deleted.
 When a member (producer) is deleted, all associated productions are deleted.
 When a role is deleted, all associated member_role entries are deleted.
@@ -47,6 +47,8 @@ PRAGMA foreign_keys = ON;
 
 -- lookup table for different types of financial transactions
 CREATE TABLE transaction_type (
+    transaction_type_id INTEGER PRIMARY KEY AUTOINCREMENT,
+    transaction_type_name TEXT UNIQUE NOT NULL
     transaction_type_id INTEGER PRIMARY KEY AUTOINCREMENT, -- surrogate
     transaction_type_name TEXT UNIQUE NOT NULL -- readable name
 );
@@ -160,6 +162,7 @@ CREATE Table sponsor_donations (
   sponsor_prod_creds REAL, --weak composite key
   PRIMARY KEY (sponsor_id, production_id)
   --- note - sponsorDonations is a weak entity dependent on sponsor and production
+) STRICT;
 ) STRICT;
 
 

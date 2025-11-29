@@ -1,0 +1,40 @@
+-- SQL INSERT statements for table `ticket`
+-- Auto Generated From CSV: csv/ticket.csv
+
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('1', '1', '1', '1', '25.00', '2025-01-02');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('2', '1', '2', '2', '25.00', '2025-01-02');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('3', '1', '3', '3', '25.00', '2025-01-02');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('4', '1', '4', '4', '25.00', '2025-01-02');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('5', '2', '5', '5', '30.00', '2025-01-03');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('6', '2', '6', '6', '30.00', '2025-01-03');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('7', '2', '7', '7', '30.00', '2025-01-03');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('8', '2', '8', '8', '30.00', '2025-01-03');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('9', '3', '9', '9', '35.00', '2025-01-04');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('10', '3', '10', '10', '35.00', '2025-01-04');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('11', '3', '11', '11', '35.00', '2025-01-04');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('12', '3', '12', '12', '35.00', '2025-01-04');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('13', '4', '13', '13', '40.00', '2025-01-05');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('14', '4', '14', '14', '40.00', '2025-01-05');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('15', '4', '15', '15', '40.00', '2025-01-05');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('16', '4', '16', '16', '40.00', '2025-01-05');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('17', '5', '17', '17', '20.00', '2025-01-06');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('18', '5', '18', '18', '20.00', '2025-01-06');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('19', '5', '19', '19', '20.00', '2025-01-06');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('20', '5', '20', '20', '20.00', '2025-01-06');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('21', '6', '21', '21', '25.00', '2025-01-07');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('22', '6', '22', '22', '25.00', '2025-01-07');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('23', '6', '23', '23', '25.00', '2025-01-07');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('24', '6', '24', '24', '25.00', '2025-01-07');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('25', '7', '25', '25', '30.00', '2025-01-08');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('26', '7', '26', '26', '30.00', '2025-01-08');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('27', '7', '27', '27', '30.00', '2025-01-08');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('28', '7', '28', '28', '30.00', '2025-01-08');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('29', '8', '29', '29', '35.00', '2025-01-09');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('30', '8', '30', '30', '35.00', '2025-01-09');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('31', '8', '31', '31', '35.00', '2025-01-09');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('32', '8', '32', '32', '35.00', '2025-01-09');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('33', '9', '33', '33', '40.00', '2025-01-10');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('34', '9', '34', '34', '40.00', '2025-01-10');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('35', '9', '35', '35', '40.00', '2025-01-10');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('36', '9', '36', '36', '40.00', '2025-01-10');
+INSERT INTO ticket (ticket_id, production_id, patron_id, seat_id, ticket_cost, purchase_date) VALUES ('37', '10', '37', '37', '20.00', '2025-01-11');

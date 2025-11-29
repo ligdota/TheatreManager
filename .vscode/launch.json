@@ -2,6 +2,25 @@
   "version": "0.2.0",
   "configurations": [
     {
+      "name": "Debug db.exe",
+      "type": "cppdbg",
+      "request": "launch",
+      "program": "c:/Users/nick_/DBfinalProj/db.exe",
+      "args": [],
+      "stopAtEntry": false,
+      "cwd": "c:/Users/nick_/DBfinalProj",
+      "externalConsole": false,
+      "MIMode": "gdb",
+      "miDebuggerPath": "C:/msys64/mingw64/bin/gdb.exe",
+      "setupCommands": [
+        {
+          "description": "Enable pretty-printing for gdb",
+          "text": "-enable-pretty-printing",
+          "ignoreFailures": true
+        }
+      ]
+    },
+    {
       "name": "C/C++ Runner: Debug Session",
       "type": "cppdbg",
       "request": "launch",
