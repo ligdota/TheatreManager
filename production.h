@@ -3,6 +3,8 @@
 #include "sqlite3.h"
 #include "execute.h"
 #include "play.h"
+#include "member.h"
+#include <limits>
 #include <iomanip>
 #include <iostream>
 using namespace std;

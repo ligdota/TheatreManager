@@ -1,0 +1,42 @@
+-- SQL INSERT statements for table `finances`
+-- Auto Generated From CSV: csv/finances.csv
+
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('1', '1', '4', '1020.0', '2025-01-02');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('102', '1', '4', '1020.0', '2025-01-02');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('100', '1', '2', '505.69', '2025-01-02');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('101', '1', '3', '690.50', '2025-01-02');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('103', '1', '5', '1020.0', '2025-01-02');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('2', '1', '5', '510.0', '2025-01-01');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('3', '2', '4', '1040.0', '2025-01-03');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('4', '2', '5', '520.0', '2025-01-02');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('5', '3', '4', '1060.0', '2025-01-04');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('6', '3', '5', '530.0', '2025-01-03');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('7', '4', '4', '1080.0', '2025-01-05');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('8', '4', '5', '540.0', '2025-01-04');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('9', '5', '4', '1100.0', '2025-01-06');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('10', '5', '5', '550.0', '2025-01-05');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('11', '6', '4', '1120.0', '2025-01-07');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('12', '6', '5', '560.0', '2025-01-06');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('13', '7', '4', '1140.0', '2025-01-08');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('14', '7', '5', '570.0', '2025-01-07');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('15', '8', '4', '1160.0', '2025-01-09');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('16', '8', '5', '580.0', '2025-01-08');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('17', '9', '4', '1180.0', '2025-01-10');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('18', '9', '5', '590.0', '2025-01-09');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('19', '10', '4', '1200.0', '2025-01-11');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('20', '10', '5', '600.0', '2025-01-10');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('21', '11', '4', '1220.0', '2025-01-12');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('22', '11', '5', '610.0', '2025-01-11');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('23', '12', '4', '1240.0', '2025-01-13');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('24', '12', '5', '620.0', '2025-01-12');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('25', '13', '4', '1260.0', '2025-01-14');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('26', '13', '5', '630.0', '2025-01-13');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('27', '14', '4', '1280.0', '2025-01-15');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('28', '14', '5', '640.0', '2025-01-14');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('29', '15', '4', '1300.0', '2025-01-16');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('30', '15', '5', '650.0', '2025-01-15');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('31', '16', '4', '1320.0', '2025-01-17');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('32', '16', '5', '660.0', '2025-01-16');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('33', '17', '4', '1340.0', '2025-01-18');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('34', '17', '5', '670.0', '2025-01-17');
+INSERT INTO finances (transaction_id, production_id, transaction_type_id, transaction_amount, transaction_date) VALUES ('35', '18', '4', '1360.0', '2025-01-19');

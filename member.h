@@ -4,6 +4,7 @@
 #include "sqlite3.h"
 #include "execute.h"
 #include <iomanip>
+#include <ctime>
 #include <iostream>
 using namespace std;
 

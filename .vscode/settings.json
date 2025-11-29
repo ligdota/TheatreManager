@@ -59,7 +59,9 @@
   "files.associations": {
     "iostream": "cpp",
     "ostream": "cpp",
-    "*.sql": "sql"
+    "*.sql": "sql",
+    "limits": "cpp",
+    "array": "cpp"
   },
   "sqltools.connections": [
     {

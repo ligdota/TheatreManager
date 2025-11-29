@@ -2,7 +2,7 @@ CXX = g++
 CC = gcc
 CXXFLAGS = -g -O0 -Wall
 
-OBJ = main.o play.o member.o production.o execute.o sqlite3.o
+OBJ = main.o play.o member.o production.o execute.o finances.o purchaseTickets.o sqlite3.o
 TARGET = db.exe
 
 
@@ -26,6 +26,12 @@ production.o: production.cpp
 execute.o: execute.cpp
 	$(CXX) $(CXXFLAGS) -c execute.cpp -o execute.o
 
+finances.o: finances.cpp
+	$(CXX) $(CXXFLAGS) -c finances.cpp -o finances.o
+
+purchaseTickets.o: purchaseTickets.cpp
+	$(CXX) $(CXXFLAGS) -c purchaseTickets.cpp -o purchaseTickets.o
+
 sqlite3.o: sqlite3.c
 	$(CC) -c sqlite3.c -o sqlite3.o
 
@@ -39,4 +45,7 @@ clean:
 reset:
 	rm -f theatre.db
 	sqlite3 theatre.db < schema.sql
-	sqlite3 theatre.db < seed.sql
+	for file in SQLinserts/*.sql; do \
+		echo "Running $$file"; \
+		sqlite3 theatre.db < $$file; \
+	done

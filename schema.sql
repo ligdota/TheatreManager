@@ -37,13 +37,14 @@ CREATE TABLE transaction_type (
     transaction_type_name TEXT UNIQUE NOT NULL
 );
 
-INSERT INTO transaction_type (transaction_type_name) VALUES
-('member_dues'),
-('sponsor_ad_creds'),
-('sponsor_prod_creds'),
-('ticket_sales'),
-('expenses');
 
+CREATE Table finances (
+  transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
+  production_id INTEGER REFERENCES production(production_id) ON DELETE CASCADE,
+  transaction_type_id INTEGER NOT NULL REFERENCES transaction_type(transaction_type_id),
+  transaction_amount REAL NOT NULL,
+  transaction_date TEXT NOT NULL
+) STRICT;
 
 CREATE Table play (
 play_id INTEGER PRIMARY KEY AUTOINCREMENT,
@@ -112,13 +113,6 @@ CREATE Table sponsor (
 ) STRICT;
 
 
-CREATE Table finances (
-  transaction_id INTEGER PRIMARY KEY AUTOINCREMENT,
-  production_id INTEGER REFERENCES production(production_id) ON DELETE CASCADE,
-  transaction_type_id INTEGER NOT NULL REFERENCES transaction_type(transaction_type_id),
-  transaction_amount REAL NOT NULL,
-  transaction_date TEXT NOT NULL
-) STRICT;
 
 
 CREATE Table ticket (
